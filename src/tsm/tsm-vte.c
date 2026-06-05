@@ -2494,11 +2494,7 @@ static void parse_data(struct tsm_vte *vte, uint32_t raw)
 		case 0x20 ... 0x2f:
 			do_trans(vte, raw, STATE_CSI_INT, ACTION_COLLECT);
 			return;
-		case 0x3a:
-			do_trans(vte, raw, STATE_CSI_IGNORE, ACTION_NONE);
-			return;
-		case 0x30 ... 0x39:
-		case 0x3b:
+		case 0x30 ... 0x3b:
 			do_trans(vte, raw, STATE_CSI_PARAM, ACTION_PARAM);
 			return;
 		case 0x3c ... 0x3f:
@@ -2517,14 +2513,12 @@ static void parse_data(struct tsm_vte *vte, uint32_t raw)
 		case 0x1c ... 0x1f:
 			do_trans(vte, raw, STATE_NONE, ACTION_EXECUTE);
 			return;
-		case 0x30 ... 0x39:
-		case 0x3b:
+		case 0x30 ... 0x3b:
 			do_trans(vte, raw, STATE_NONE, ACTION_PARAM);
 			return;
 		case 0x7f:
 			do_trans(vte, raw, STATE_NONE, ACTION_IGNORE);
 			return;
-		case 0x3a:
 		case 0x3c ... 0x3f:
 			do_trans(vte, raw, STATE_CSI_IGNORE, ACTION_NONE);
 			return;
@@ -2584,14 +2578,10 @@ static void parse_data(struct tsm_vte *vte, uint32_t raw)
 		case 0x7f:
 			do_trans(vte, raw, STATE_NONE, ACTION_IGNORE);
 			return;
-		case 0x3a:
-			do_trans(vte, raw, STATE_DCS_IGNORE, ACTION_NONE);
-			return;
 		case 0x20 ... 0x2f:
 			do_trans(vte, raw, STATE_DCS_INT, ACTION_COLLECT);
 			return;
-		case 0x30 ... 0x39:
-		case 0x3b:
+		case 0x30 ... 0x3b:
 			do_trans(vte, raw, STATE_DCS_PARAM, ACTION_PARAM);
 			return;
 		case 0x3c ... 0x3f:
@@ -2611,11 +2601,9 @@ static void parse_data(struct tsm_vte *vte, uint32_t raw)
 		case 0x7f:
 			do_trans(vte, raw, STATE_NONE, ACTION_IGNORE);
 			return;
-		case 0x30 ... 0x39:
-		case 0x3b:
+		case 0x30 ... 0x3b:
 			do_trans(vte, raw, STATE_NONE, ACTION_PARAM);
 			return;
-		case 0x3a:
 		case 0x3c ... 0x3f:
 			do_trans(vte, raw, STATE_DCS_IGNORE, ACTION_NONE);
 			return;
