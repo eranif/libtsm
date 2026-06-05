@@ -37,15 +37,22 @@ target_include_directories(tsm
     ${CMAKE_CURRENT_BINARY_DIR}
 )
 
-target_compile_definitions(tsm PRIVATE
-  _GNU_SOURCE
-  _POSIX_C_SOURCE=200809L
-)
+if(NOT WIN32)
+  target_compile_definitions(tsm PRIVATE
+    _GNU_SOURCE
+    _POSIX_C_SOURCE=200809L
+  )
+endif()
 
 # Force-include config.h like meson does
 target_compile_options(tsm PRIVATE
   -include ${CMAKE_CURRENT_BINARY_DIR}/config.h
-  -fvisibility=hidden
 )
 
-set_target_properties(tsm PROPERTIES POSITION_INDEPENDENT_CODE ON)
+if(NOT WIN32)
+  target_compile_options(tsm PRIVATE -fvisibility=hidden)
+endif()
+
+if(NOT WIN32)
+  set_target_properties(tsm PROPERTIES POSITION_INDEPENDENT_CODE ON)
+endif()
