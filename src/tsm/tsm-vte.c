@@ -163,6 +163,7 @@ struct tsm_vte {
 	unsigned int state;
 	unsigned int csi_argc;
 	int csi_argv[CSI_ARG_MAX];
+	char csi_sep[CSI_ARG_MAX];
 	unsigned int csi_flags;
 
 	tsm_vte_osc_cb osc_cb;
@@ -1003,8 +1004,10 @@ static void do_clear(struct tsm_vte *vte)
 	int i;
 
 	vte->csi_argc = 0;
-	for (i = 0; i < CSI_ARG_MAX; ++i)
+	for (i = 0; i < CSI_ARG_MAX; ++i) {
 		vte->csi_argv[i] = -1;
+		vte->csi_sep[i] = ';';
+	}
 	vte->csi_flags = 0;
 
 	vte->osc_len = 0;
@@ -1060,6 +1063,8 @@ static void do_param(struct tsm_vte *vte, uint32_t data)
 			if (vte->csi_argv[vte->csi_argc] == -1)
 				vte->csi_argv[vte->csi_argc] = 0;
 			vte->csi_argc++;
+			if (vte->csi_argc < CSI_ARG_MAX)
+				vte->csi_sep[vte->csi_argc] = (char)data;
 		}
 		return;
 	}
@@ -1339,7 +1344,17 @@ static void csi_attribute(struct tsm_vte *vte)
 			vte->cattr.italic = 1;
 			break;
 		case 4:
-			vte->cattr.underline = 1;
+			if (i + 1 < vte->csi_argc &&
+			    vte->csi_sep[i + 1] == ':') {
+				/* SGR 4:X — underline style sub-param.
+				 * 0 = none, 1 = single, 2 = double,
+				 * 3 = curly, etc. */
+				int style = vte->csi_argv[i + 1];
+				vte->cattr.underline = (style > 0) ? 1 : 0;
+				++i;
+			} else {
+				vte->cattr.underline = 1;
+			}
 			break;
 		case 5:
 			vte->cattr.blink = 1;
