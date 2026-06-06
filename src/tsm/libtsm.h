@@ -204,6 +204,25 @@ void tsm_screen_sb_reset(struct tsm_screen *con);
 unsigned int tsm_screen_sb_get_line_count(struct tsm_screen *con);
 unsigned int tsm_screen_sb_get_line_pos(struct tsm_screen *con);
 
+struct tsm_screen_cell {
+	uint32_t ch;
+	unsigned int width;
+	struct tsm_screen_attr attr;
+};
+
+int tsm_screen_sb_get_line_cells(struct tsm_screen *con,
+				 unsigned int line_idx,
+				 struct tsm_screen_cell *out,
+				 unsigned int *out_len,
+				 unsigned int max_cells);
+
+int tsm_screen_sb_get_lines(struct tsm_screen *con,
+			    unsigned int start_idx,
+			    unsigned int count,
+			    struct tsm_screen_cell *out,
+			    unsigned int *out_lens,
+			    unsigned int max_cols);
+
 void tsm_screen_set_def_attr(struct tsm_screen *con,
 			     const struct tsm_screen_attr *attr);
 void tsm_screen_reset(struct tsm_screen *con);

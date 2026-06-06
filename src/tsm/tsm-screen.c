@@ -959,6 +959,105 @@ unsigned int tsm_screen_sb_get_line_pos(struct tsm_screen *con)
 	return con->sb.pos_num;
 }
 
+int tsm_screen_sb_get_line_cells(struct tsm_screen *con,
+				 unsigned int line_idx,
+				 struct tsm_screen_cell *out,
+				 unsigned int *out_len,
+				 unsigned int max_cells)
+{
+	struct line *line;
+	struct shl_dlist *iter;
+	unsigned int i, count;
+
+	if (!con || !out || !out_len || max_cells == 0)
+		return -EINVAL;
+
+	if (line_idx >= con->sb.count)
+		return -EINVAL;
+
+	/* Walk the scrollback list to the requested index.
+	 * Index 0 is the oldest line (head of the list). */
+	i = 0;
+	line = NULL;
+	shl_dlist_for_each(iter, &con->sb.list) {
+		if (i == line_idx) {
+			line = shl_dlist_entry(iter, struct line, list);
+			break;
+		}
+		++i;
+	}
+
+	if (!line)
+		return -EINVAL;
+
+	count = line->size < max_cells ? line->size : max_cells;
+	for (i = 0; i < count; ++i) {
+		const uint32_t *ch;
+		size_t len;
+
+		ch = tsm_symbol_get(con->sym_table, &line->cells[i].ch, &len);
+		out[i].ch = (len > 0) ? ch[0] : 0;
+		out[i].width = line->cells[i].width;
+		memcpy(&out[i].attr, &line->cells[i].attr,
+		       sizeof(struct tsm_screen_attr));
+	}
+
+	*out_len = count;
+	return 0;
+}
+
+int tsm_screen_sb_get_lines(struct tsm_screen *con,
+			    unsigned int start_idx,
+			    unsigned int count,
+			    struct tsm_screen_cell *out,
+			    unsigned int *out_lens,
+			    unsigned int max_cols)
+{
+	struct shl_dlist *iter;
+	struct line *line;
+	unsigned int i, j, n, cell_count;
+
+	if (!con || !out || !out_lens || count == 0 || max_cols == 0)
+		return -EINVAL;
+
+	if (start_idx >= con->sb.count)
+		return -EINVAL;
+
+	if (start_idx + count > con->sb.count)
+		count = con->sb.count - start_idx;
+
+	/* Walk to start_idx */
+	i = 0;
+	iter = con->sb.list.next;
+	while (i < start_idx && iter != &con->sb.list) {
+		iter = iter->next;
+		++i;
+	}
+
+	/* Read count consecutive lines */
+	for (n = 0; n < count && iter != &con->sb.list; ++n, iter = iter->next) {
+		line = shl_dlist_entry(iter, struct line, list);
+		cell_count = line->size < max_cols ? line->size : max_cols;
+
+		for (j = 0; j < cell_count; ++j) {
+			const uint32_t *ch;
+			size_t len;
+			unsigned int offset = n * max_cols + j;
+
+			ch = tsm_symbol_get(con->sym_table,
+					    &line->cells[j].ch, &len);
+			out[offset].ch = (len > 0) ? ch[0] : 0;
+			out[offset].width = line->cells[j].width;
+			memcpy(&out[offset].attr, &line->cells[j].attr,
+			       sizeof(struct tsm_screen_attr));
+		}
+
+		out_lens[n] = cell_count;
+	}
+
+	return 0;
+}
+
 SHL_EXPORT
 void tsm_screen_set_def_attr(struct tsm_screen *con,
 				 const struct tsm_screen_attr *attr)

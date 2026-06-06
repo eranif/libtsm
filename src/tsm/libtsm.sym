@@ -148,3 +148,9 @@ global:
 	tsm_vte_set_bell_cb;
 	tsm_vte_set_led_cb;
 } LIBTSM_4_4;
+
+LIBTSM_4_6 {
+global:
+	tsm_screen_sb_get_line_cells;
+	tsm_screen_sb_get_lines;
+} LIBTSM_4_5;
